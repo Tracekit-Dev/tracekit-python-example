@@ -17,7 +17,7 @@ This is a Flask-based test application for demonstrating TraceKit APM functional
 
 The application is configured to send traces to a local TraceKit instance:
 
-- **Endpoint:** `http://localhost:8081/v1/traces`
+- **Endpoint:** `https://api.tracekit.dev/v1/traces`
 - **Service Name:** `python-test-app`
 - **Sample Rate:** 100% (all requests traced)
 - **Code Monitoring:** Enabled
@@ -203,7 +203,7 @@ done
 
 ## Viewing Traces
 
-1. Start your TraceKit backend on `http://localhost:8081`
+1. Start your TraceKit backend on `http://api.tracekit.dev`
 2. Run this test application
 3. Make requests to the endpoints
 4. View traces in your TraceKit dashboard
@@ -242,7 +242,7 @@ The traces will show:
 
 ### Traces not appearing?
 
-1. Check TraceKit backend is running: `curl http://localhost:8081/health`
+1. Check TraceKit backend is running: `curl http://api.tracekit.dev/health`
 2. Verify API key in `.env` file
 3. Check endpoint URL in `.env` file
 4. Look for errors in Flask console output
@@ -278,7 +278,7 @@ OpenTelemetry SDK
     ↓
 OTLP HTTP Exporter
     ↓
-TraceKit Backend (localhost:8081)
+TraceKit Backend (api.tracekit.dev)
 ```
 
 ## Notes
