@@ -1,6 +1,7 @@
 # TraceKit Python Test Application
 
-This is a Flask-based test application for demonstrating TraceKit APM functionality with Python.
+This is a Flask-based test application for demonstrating TraceKit APM 
+functionality with Python.
 
 ## Features
 
@@ -15,7 +16,7 @@ This is a Flask-based test application for demonstrating TraceKit APM functional
 
 ## Configuration
 
-The application is configured to send traces to a local TraceKit instance:
+The application is configured to send traces to TraceKit:
 
 - **Endpoint:** `https://api.tracekit.dev/v1/traces`
 - **Service Name:** `python-test-app`
@@ -32,6 +33,9 @@ Configuration is stored in `.env` file.
 cd python-test
 pip install -r requirements.txt
 ```
+
+This will install all required packages including the TraceKit Python APM 
+SDK from GitHub.
 
 ### 2. Configure Environment
 
@@ -203,10 +207,10 @@ done
 
 ## Viewing Traces
 
-1. Start your TraceKit backend on `http://api.tracekit.dev`
+1. Ensure you have a valid TraceKit API key configured in `.env`
 2. Run this test application
 3. Make requests to the endpoints
-4. View traces in your TraceKit dashboard
+4. View traces in your TraceKit dashboard at https://app.tracekit.dev
 
 The traces will show:
 - HTTP request details
@@ -221,10 +225,14 @@ The traces will show:
 
 ```json
 [
-  {"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": "admin"},
-  {"id": 2, "name": "Bob Smith", "email": "bob@example.com", "role": "user"},
-  {"id": 3, "name": "Charlie Brown", "email": "charlie@example.com", "role": "user"},
-  {"id": 4, "name": "Diana Prince", "email": "diana@example.com", "role": "moderator"}
+  {"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": 
+"admin"},
+  {"id": 2, "name": "Bob Smith", "email": "bob@example.com", "role": 
+"user"},
+  {"id": 3, "name": "Charlie Brown", "email": "charlie@example.com", 
+"role": "user"},
+  {"id": 4, "name": "Diana Prince", "email": "diana@example.com", "role": 
+"moderator"}
 ]
 ```
 
@@ -232,9 +240,12 @@ The traces will show:
 
 ```json
 [
-  {"id": 1, "user_id": 1, "product": "Laptop", "amount": 1299.99, "status": "completed"},
-  {"id": 2, "user_id": 2, "product": "Mouse", "amount": 29.99, "status": "pending"},
-  {"id": 3, "user_id": 1, "product": "Keyboard", "amount": 89.99, "status": "completed"}
+  {"id": 1, "user_id": 1, "product": "Laptop", "amount": 1299.99, 
+"status": "completed"},
+  {"id": 2, "user_id": 2, "product": "Mouse", "amount": 29.99, "status": 
+"pending"},
+  {"id": 3, "user_id": 1, "product": "Keyboard", "amount": 89.99, 
+"status": "completed"}
 ]
 ```
 
@@ -242,27 +253,28 @@ The traces will show:
 
 ### Traces not appearing?
 
-1. Check TraceKit backend is running: `curl http://api.tracekit.dev/health`
-2. Verify API key in `.env` file
-3. Check endpoint URL in `.env` file
-4. Look for errors in Flask console output
+1. Verify API key in `.env` file
+2. Check endpoint URL in `.env` file (should be 
+`https://api.tracekit.dev/v1/traces`)
+3. Look for errors in Flask console output
+4. Ensure your API key is valid at https://app.tracekit.dev
 
 ### Import errors?
 
-The app automatically adds the `python-apm` directory to the Python path. Make sure the directory structure is:
+Make sure you've installed all dependencies including the TraceKit Python 
+APM SDK:
 
-```
-tracekit/
-├── python-apm/     # TraceKit SDK
-└── python-test/    # This test app
+```bash
+pip install -r requirements.txt
 ```
 
 ### Module not found?
 
-Make sure you've installed all dependencies:
+Ensure all dependencies are installed. If you encounter issues with the 
+TraceKit SDK, you can install it manually:
 
 ```bash
-pip install -r requirements.txt
+pip install git+https://github.com/Tracekit-Dev/python-apm.git
 ```
 
 ## Architecture
