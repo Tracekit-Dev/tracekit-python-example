@@ -18,7 +18,7 @@ functionality with Python.
 
 The application is configured to send traces to TraceKit:
 
-- **Endpoint:** `https://api.tracekit.dev/v1/traces`
+- **Endpoint:** `https://app.tracekit.dev/v1/traces`
 - **Service Name:** `python-test-app`
 - **Sample Rate:** 100% (all requests traced)
 - **Code Monitoring:** Enabled
@@ -255,7 +255,7 @@ The traces will show:
 
 1. Verify API key in `.env` file
 2. Check endpoint URL in `.env` file (should be 
-`https://api.tracekit.dev/v1/traces`)
+`https://app.tracekit.dev/v1/traces`)
 3. Look for errors in Flask console output
 4. Ensure your API key is valid at https://app.tracekit.dev
 
