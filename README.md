@@ -34,8 +34,7 @@ cd python-test
 pip install -r requirements.txt
 ```
 
-This will install all required packages including the TraceKit Python APM 
-SDK from GitHub.
+This will install all required packages including the TraceKit Python APM SDK.
 
 ### 2. Configure Environment
 
@@ -273,9 +272,22 @@ pip install -r requirements.txt
 Ensure all dependencies are installed. If you encounter issues with the 
 TraceKit SDK, you can install it manually:
 
-```bash
-pip install git+https://github.com/Tracekit-Dev/python-apm.git
-```
+#### Installation
+pip install tracekit-apm
+
+#### Framework-Specific Installation
+
+#### Flask
+pip install tracekit-apm[flask]
+
+#### FastAPI
+pip install tracekit-apm[fastapi]
+
+#### Django
+pip install tracekit-apm[django]
+
+#### All frameworks
+pip install tracekit-apm[all]
 
 ## Architecture
 
