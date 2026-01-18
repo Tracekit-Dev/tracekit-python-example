@@ -20,9 +20,6 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Add parent directory to path to import tracekit
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'python-apm'))
-
 import tracekit
 from tracekit.middleware.flask import init_flask_app
 
