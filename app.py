@@ -689,6 +689,74 @@ def call_all_services():
     return jsonify(results)
 
 
+# Security test endpoint
+@app.route('/security-test', methods=['GET'])
+def security_test():
+    """Test security data detection in snapshots"""
+    # Test sensitive data detection
+    test_variables = {
+        'password': 'super_secret_password_123',
+        'api_key': 'test_key_AbCdEfGhIjKlMnOpQrStUvWxYz1234567890',
+        'user_token': 'test_access_token',
+        'credit_card': '4532015112830366',
+        'normal_var': 'This is just normal data',
+    }
+
+    client.capture_snapshot('security-test-with-sensitive-data', test_variables)
+
+    return jsonify({
+        'message': 'Security test completed - check for security events',
+        'note': 'Sensitive data should be redacted in the snapshot'
+    })
+
+
+@app.route('/sql-injection-test', methods=['GET'])
+def sql_injection_test():
+    """Test SQL injection detection in database queries"""
+    from opentelemetry import trace
+
+    tracer = trace.get_tracer(__name__)
+
+    # Test 1: Union-based SQL injection
+    with tracer.start_as_current_span('db.query.malicious') as span:
+        malicious_query = "SELECT * FROM users WHERE id = 1 UNION SELECT * FROM admin_users"
+        span.set_attributes({
+            'db.system': 'postgresql',
+            'db.operation': 'SELECT',
+            'db.table': 'users',
+            'db.statement': malicious_query
+        })
+        time.sleep(0.01)
+
+    # Test 2: Boolean-based SQL injection
+    with tracer.start_as_current_span('db.query.boolean_injection') as span:
+        boolean_query = "SELECT * FROM users WHERE username = 'admin' OR 1=1 -- '"
+        span.set_attributes({
+            'db.system': 'postgresql',
+            'db.operation': 'SELECT',
+            'db.table': 'users',
+            'db.statement': boolean_query
+        })
+        time.sleep(0.01)
+
+    # Test 3: Time-based blind SQL injection
+    with tracer.start_as_current_span('db.query.time_based') as span:
+        time_based_query = "SELECT * FROM users WHERE id = 1; SELECT SLEEP(5)"
+        span.set_attributes({
+            'db.system': 'postgresql',
+            'db.operation': 'SELECT',
+            'db.table': 'users',
+            'db.statement': time_based_query
+        })
+        time.sleep(0.01)
+
+    return jsonify({
+        'message': 'SQL injection test completed - check for security events',
+        'tests': ['union_injection', 'boolean_injection', 'time_based_blind'],
+        'note': 'Backend should detect SQL injection patterns in db.statement attributes'
+    })
+
+
 # Error handlers
 
 @app.errorhandler(404)
