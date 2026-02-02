@@ -13,6 +13,81 @@ functionality with Python.
 - ✅ Slow endpoint simulation
 - ✅ Random behavior testing
 - ✅ Checkout flow with snapshots
+- ✅ Metrics tracking (Counter, Gauge, Histogram)
+
+## Metrics
+
+The application demonstrates TraceKit's metrics API by tracking key performance indicators:
+
+### Metrics Tracked
+
+#### HTTP Request Metrics
+- **`http.requests.total`** (Counter) - Total number of HTTP requests
+- **`http.requests.active`** (Gauge) - Number of currently active requests
+- **`http.request.duration`** (Histogram) - Request duration in milliseconds
+- **`http.errors.total`** (Counter) - Total number of HTTP errors
+
+#### Database Metrics
+- **`db.queries.total`** (Counter) - Total number of database queries
+- **`db.query.duration`** (Histogram) - Database query duration in milliseconds
+
+### How Metrics Work
+
+Metrics are initialized at application startup:
+
+```python
+# Initialize metrics
+request_counter = client.counter("http.requests.total", {"service": "python-test-app"})
+active_requests_gauge = client.gauge("http.requests.active", {"service": "python-test-app"})
+request_duration_histogram = client.histogram("http.request.duration", {"unit": "ms"})
+```
+
+And used in endpoint handlers:
+
+```python
+@app.route('/api/orders', methods=['POST'])
+def create_order():
+    start_time = time.time()
+
+    # Track active requests
+    active_requests_gauge.inc()
+
+    try:
+        # Process order...
+        request_counter.inc()
+        return jsonify(new_order), 201
+    finally:
+        # Always record metrics even if there's an error
+        active_requests_gauge.dec()
+        duration_ms = (time.time() - start_time) * 1000
+        request_duration_histogram.record(duration_ms)
+```
+
+### Viewing Metrics
+
+Metrics are automatically exported to TraceKit and can be viewed in your dashboard:
+
+1. Navigate to the Metrics section in TraceKit dashboard
+2. Filter by service name: `python-test-app`
+3. View metric trends, distributions, and aggregations
+
+### Testing Metrics
+
+Create some orders to generate metrics:
+
+```bash
+# Create multiple orders to generate metrics
+for i in {1..10}; do
+  curl -X POST http://localhost:5001/api/orders \
+    -H "Content-Type: application/json" \
+    -d "{\"user_id\": 1, \"product\": \"Item $i\", \"amount\": 99.99}"
+done
+```
+
+You'll see:
+- `http.requests.total` increase by 10
+- `http.requests.active` spike during processing
+- `http.request.duration` histogram showing distribution of request times
 
 ## Configuration
 

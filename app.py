@@ -73,6 +73,14 @@ print("="*60 + "\n")
 # Add TraceKit middleware
 init_flask_app(app, client)
 
+# Initialize metrics
+request_counter = client.counter("http.requests.total", {"service": "python-test-app"})
+active_requests_gauge = client.gauge("http.requests.active", {"service": "python-test-app"})
+request_duration_histogram = client.histogram("http.request.duration", {"unit": "ms"})
+error_counter = client.counter("http.errors.total", {"service": "python-test-app"})
+db_query_counter = client.counter("db.queries.total", {"service": "python-test-app"})
+db_query_duration = client.histogram("db.query.duration", {"unit": "ms"})
+
 # Simulated database
 USERS_DB = [
     {"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": "admin"},
@@ -140,6 +148,7 @@ def list_users():
     tracer = trace.get_tracer(__name__)
 
     # Create a custom child span using context manager
+    start_time = time.time()
     with tracer.start_as_current_span('db.query.users') as span:
         span.set_attributes({
             'db.system': 'postgresql',
@@ -148,12 +157,19 @@ def list_users():
             'db.statement': 'SELECT * FROM users'
         })
 
+        # Track database query metrics
+        db_query_counter.inc()
+
         # Simulate database query delay
         time.sleep(random.uniform(0.02, 0.08))
 
+        # Record query duration
+        query_duration_ms = (time.time() - start_time) * 1000
+        db_query_duration.record(query_duration_ms)
+
         span.set_attributes({
             'db.rows': len(USERS_DB),
-            'db.duration_ms': random.randint(20, 80)
+            'db.duration_ms': int(query_duration_ms)
         })
 
     return jsonify({
@@ -256,39 +272,54 @@ def get_order(order_id):
 
 @app.route('/api/orders', methods=['POST'])
 def create_order():
-    """Create a new order"""
-    data = request.get_json()
+    """Create a new order with metrics tracking"""
+    start_time = time.time()
 
-    # Validate input
-    if not data or 'user_id' not in data or 'product' not in data or 'amount' not in data:
-        abort(400, description="Missing required fields: user_id, product, amount")
+    # Track active requests
+    active_requests_gauge.inc()
 
-    # Create order span
-    span = client.start_span('create-order', {
-        'user.id': data['user_id'],
-        'product.name': data['product'],
-        'order.amount': data['amount']
-    })
+    try:
+        data = request.get_json()
 
-    # Simulate database insert
-    time.sleep(random.uniform(0.05, 0.15))
+        # Validate input
+        if not data or 'user_id' not in data or 'product' not in data or 'amount' not in data:
+            abort(400, description="Missing required fields: user_id, product, amount")
 
-    new_order = {
-        "id": len(ORDERS_DB) + 1,
-        "user_id": data['user_id'],
-        "product": data['product'],
-        "amount": data['amount'],
-        "status": "pending"
-    }
+        # Create order span
+        span = client.start_span('create-order', {
+            'user.id': data['user_id'],
+            'product.name': data['product'],
+            'order.amount': data['amount']
+        })
 
-    ORDERS_DB.append(new_order)
+        # Simulate database insert
+        time.sleep(random.uniform(0.05, 0.15))
 
-    client.end_span(span, {
-        'order.id': new_order['id'],
-        'order.created': True
-    })
+        new_order = {
+            "id": len(ORDERS_DB) + 1,
+            "user_id": data['user_id'],
+            "product": data['product'],
+            "amount": data['amount'],
+            "status": "pending"
+        }
 
-    return jsonify(new_order), 201
+        ORDERS_DB.append(new_order)
+
+        client.end_span(span, {
+            'order.id': new_order['id'],
+            'order.created': True
+        })
+
+        # Track successful request
+        request_counter.inc()
+
+        return jsonify(new_order), 201
+
+    finally:
+        # Always record metrics even if there's an error
+        active_requests_gauge.dec()
+        duration_ms = (time.time() - start_time) * 1000
+        request_duration_histogram.record(duration_ms)
 
 
 @app.route('/api/slow')
@@ -315,6 +346,9 @@ def slow_endpoint():
 @app.route('/api/error')
 def error_endpoint():
     """Endpoint that throws an error for testing error tracking"""
+    # Track error metric
+    error_counter.inc()
+
     # This error will be automatically captured by TraceKit
     error_types = [
         ValueError("Invalid value provided"),
